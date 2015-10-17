@@ -3,14 +3,45 @@
 ### October 2015
 
 ## Loading and preprocessing the data
-```{r}
+
+```r
 # Note: To ensure portability, this script assumes the input file is 
 #       already in the current working directory
 
 # Load required packages
 require(dplyr)
-require(ggplot2)
+```
 
+```
+## Loading required package: dplyr
+```
+
+```
+## Warning: package 'dplyr' was built under R version 3.1.3
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+## 
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
+require(ggplot2)
+```
+
+```
+## Loading required package: ggplot2
+```
+
+```r
 # Read raw data
 df <- read.csv("activity.csv", header = TRUE, na.strings = "NA")
 
@@ -29,7 +60,8 @@ For this part of the assignment, missing values in the dataset will be ignored.
 Using the dplyr package, the data is grouped by date and the total steps taken
 is calculated
 
-```{r}
+
+```r
 # Calculate total steps per day
 spd <- df %>%
         group_by(date) %>%
@@ -39,8 +71,14 @@ spd <- df %>%
 summary(spd$totsteps)
 ```
 
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##       0    6778   10400    9354   12810   21190
+```
+
 ### Make a histogram of the total number of steps taken each day  
-```{r}
+
+```r
 # Create histogram with ggplot2
 ggplot(data = spd, aes(x = totsteps, y = ..density..)) +
         geom_histogram(binwidth = 800, aes(fill = ..count..)) +
@@ -50,6 +88,8 @@ ggplot(data = spd, aes(x = totsteps, y = ..density..)) +
         xlab("Steps") +
         ylab("Density")
 ```
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
 
 Note that the histogram is skewed and appears to have quite a lot of missing 
 values (i.e., invervals or entire days with no data). This will be ignored for 
@@ -64,20 +104,27 @@ compared to days with 10,000 or above. This indicates that the threshold of
 individual participant.
 
 ### Calculate and report the mean and median of the total steps taken per day  
-```{r}
+
+```r
 summary(spd$totsteps)
 ```
 
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##       0    6778   10400    9354   12810   21190
+```
+
 The mean number of steps taken per day was 
-`r sprintf("%.0f", mean(spd$totsteps))` and the median was 
-`r sprintf("%.0f", median(spd$totsteps))`. Note that these values may differ
+9354 and the median was 
+10395. Note that these values may differ
 from the summary above due to the default precision of the summary() function.
 
 ## What is the average daily activity pattern?
 Calculate the average daily activity pattern. Concretely, calculate the mean of 
 the number of steps taken in a given 5-minute interval across all days.  
 
-```{r}
+
+```r
 # Calculate average steps per interval
 spi <- df %>%
         group_by(interval) %>%
@@ -88,7 +135,8 @@ spi <- df %>%
 The following plot is a time series plot of the 5-minute interval (x) and the 
 average number of steps taken, averaged across all days (y-axis)  
 
-```{r}
+
+```r
 # Create time series plot with ggplot2
 ggplot(data = spi, aes(x = interval, y = avgsteps)) +
         geom_line(aes(color = factor("all")), show_guide = FALSE) +
@@ -97,21 +145,31 @@ ggplot(data = spi, aes(x = interval, y = avgsteps)) +
         ylab("Average Number of Steps")
 ```
 
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png) 
+
 ### Identify interval with maximum average steps
 In order to identify which 5-minute interval, on average across all the days in 
 the dataset, contains the maximum number of steps, the which.max function is 
 used to identify the record in the steps per interval (spi) data frame with the 
 highest average.
 
-```{r}
+
+```r
 # Identify record with maximum average steps
 spi[which.max(spi$avgsteps), ]
 ```
 
-On average, the 5-minute interval of `r spi$interval[which.max(spi$avgsteps)]` 
+```
+## Source: local data frame [1 x 2]
+## 
+##   interval avgsteps
+## 1      835 206.1698
+```
+
+On average, the 5-minute interval of 835 
 contains the maximum number of steps--in other words, this is the most active 
 period of the day, on average. On average, 
-`r sprintf("%.0f", spi$avgsteps[which.max(spi$avgsteps)])` steps were taken 
+206 steps were taken 
 during this 5-minute interval.
 
 ## Imputing missing values
@@ -123,13 +181,18 @@ into some calculations or summaries of the data.
 The total number of missing values in the dataset is simply the number of rows 
 with NA values for 'steps'.
 
-```{r}
+
+```r
 # Logical vector indicating which records have missing values for 'steps'
 na <- is.na(df$steps)
 sum(na)
 ```
 
-There are a total of `r sum(na)` missing values in the data.  
+```
+## [1] 2304
+```
+
+There are a total of 2304 missing values in the data.  
 
 ### Devise a strategy for filling in all of the missing values in the dataset
 The method that will be used to impute missing values is the mean number of 
@@ -149,7 +212,8 @@ already created summarizing the average number of steps across all days for
 each five-minute interval. The data frame will also contain a logical variable 
 'imputed' indicating if the value of 'steps' was imputed or not.
 
-```{r}
+
+```r
 # Identify records where imputation is needed and replace missing values
 df.imputed <- df %>%
         bind_cols(data.frame(imputed = na)) %>%
@@ -160,17 +224,23 @@ df.imputed <- df %>%
 
 As a check, verify that all records have values (i.e., no more missing values):
 
-```{r}
+
+```r
 # Logical vector indicating which records have missing values for 'steps'
 na.imputed <- is.na(df.imputed$steps)
 sum(na.imputed)
 ```
 
-Now there are `r sum(na.imputed)` missing values in the data.
+```
+## [1] 0
+```
+
+Now there are 0 missing values in the data.
 
 ### Update histogram, mean and median number of steps taken per day
 
-```{r}
+
+```r
 # Calculate total number of steps taken per day (imputed)
 spd.imputed <- df.imputed %>%
         group_by(date) %>%
@@ -184,19 +254,28 @@ ggplot(data = spd.imputed, aes(x = totsteps, y = ..density..)) +
         ggtitle("Histogram (With Density Plot) of Total Steps Per Day (Imputed)") +
         xlab("Steps") +
         ylab("Density")
+```
 
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11-1.png) 
+
+```r
 summary(spd.imputed$totsteps)
 ```
 
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    9819   10770   10770   12810   21190
+```
+
 The updated mean number of steps taken per day was 
-`r sprintf("%.0f", mean(spd.imputed$totsteps))` and the median was 
-`r sprintf("%.0f", median(spd.imputed$totsteps))`.  
+10766 and the median was 
+10766.  
 
 These values differ from the values calculated earlier. By imputing missing 
 values, the median has increased by 
-`r sprintf("%.0f", (median(spd.imputed$totsteps) - median(spd$totsteps)))` steps 
+371 steps 
 and the mean has increased by 
-`r sprintf("%.0f", (mean(spd.imputed$totsteps) - mean(spd$totsteps)))` steps. 
+1412 steps. 
 This makes sense, since missing values have been replaced with positive values, 
 which would only increase the mean and median. The pattern seen previously with
 a pronounced spike in days with 10,000 steps or just above is still present.  
@@ -209,7 +288,8 @@ Similar to the processing for the previous section, the factor variable
 interval to calculate the average total number of steps taken across all days
 for each day type for each five-minute interval.  
 
-```{r}
+
+```r
 # Determine day type and calculate average steps per interval per day type
 spi.daytype <- df.imputed %>%
         mutate(daytype = ifelse(weekdays(datetime, TRUE) %in% c("Sat","Sun"),
@@ -231,15 +311,17 @@ ggplot(data = spi.daytype, aes(x = interval, y = avgsteps, group = daytype)) +
         ylab("Average Number of Steps")
 ```
 
+![plot of chunk unnamed-chunk-12](figure/unnamed-chunk-12-1.png) 
+
 It is difficult to tell in this plot, but there is indeed a difference in average
 daily activity between weekdays and weekends.  
 
 On weekdays, the maximum average of 
-`r sprintf("%.0f", maxints$avgsteps[maxints$daytype == "Weekend"])` steps was 
-reached at interval `r maxints$interval[maxints$daytype == "Weekend"]`.
+167 steps was 
+reached at interval 915.
 On weekends, the maximum average of 
-`r sprintf("%.0f", maxints$avgsteps[maxints$daytype == "Weekday"])` steps was 
-reached at interval `r maxints$interval[maxints$daytype == "Weekday"]`. In other
+230 steps was 
+reached at interval 835. In other
 words, it appears that daily activity peaked later in the day on weekends.  
 
 By combining the panels and looking at a smoothed function (Loess Curve) instead 
@@ -247,7 +329,8 @@ of the time series (which has quite a lot of variation between intervals), the
 broader trend in daily activity compared between weekdays and weekends is a bit 
 more clear.  
 
-```{r}
+
+```r
 # Create smoothed (loess local regression) plots of time series
 ggplot(data = spi.daytype, aes(x = interval, y = avgsteps, group = daytype)) +
         geom_smooth(method = "loess", aes(color = daytype)) +
@@ -256,6 +339,8 @@ ggplot(data = spi.daytype, aes(x = interval, y = avgsteps, group = daytype)) +
         xlab("Interval") +
         ylab("Average Number of Steps")
 ```
+
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png) 
 
 In general, it appears that activity began later in the day on weekends, 
 but was sustained for a larger portion of the day. On weekdays, activity 
